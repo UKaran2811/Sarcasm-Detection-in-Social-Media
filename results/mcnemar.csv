@@ -1,0 +1,6 @@
+Model vs B2,B2 right/model wrong,B2 wrong/model right,p-value
+B1: TF-IDF(word) + Naive Bayes,42,49,0.5296020954762453
+I1: Context-only + GradBoost,109,128,0.24225270288663886
+I2: TF-IDF(word+char)+Context + LogReg,55,75,0.09525341143251784
+I3: TF-IDF(word+char)+Context + LinearSVM,74,89,0.2727839165101227
+I4: Late fusion (Text-LR + Context-GB),46,76,0.008381134037666778

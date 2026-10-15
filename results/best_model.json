@@ -1,0 +1,12 @@
+{
+  "best_model": "I4: Late fusion (Text-LR + Context-GB)",
+  "test_metrics": {
+    "Accuracy": 0.7028061224489796,
+    "Precision": 0.6089385474860335,
+    "Recall": 0.7009646302250804,
+    "F1": 0.6517189835575485,
+    "Macro-F1": 0.6962710601881179,
+    "ROC-AUC": 0.7893652746714886,
+    "CV F1 (train, 5-fold)": 0.6829429949389639
+  }
+}

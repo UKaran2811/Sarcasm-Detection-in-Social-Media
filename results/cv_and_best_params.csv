@@ -1,0 +1,7 @@
+Model,"CV F1 (train, 5-fold)",Best params
+B1: TF-IDF(word) + Naive Bayes,0.6368810429245944,{'clf__alpha': 1.0}
+B2: TF-IDF(word) + LogReg,0.6464974236401346,{'clf__C': 3}
+I1: Context-only + GradBoost,0.66524347608213,"{'clf__max_depth': 3, 'clf__max_iter': 200}"
+I2: TF-IDF(word+char)+Context + LogReg,0.683210680828177,"{'clf__C': 1, 'feat__transformer_weights': {'ctx': 0.6}}"
+I3: TF-IDF(word+char)+Context + LinearSVM,0.680624685997272,"{'clf__C': 0.03, 'feat__transformer_weights': {'ctx': 0.15}}"
+I4: Late fusion (Text-LR + Context-GB),0.6829429949389639,"C=1, w=0.6"

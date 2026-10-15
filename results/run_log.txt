@@ -1,0 +1,137 @@
+[   0.0s] 1. Loading data
+split                     train    test
+n_tweets                 3834.0   784.0
+n_ironic/sarcastic (1)   1911.0   311.0
+n_non-ironic (0)         1923.0   473.0
+% positive class           49.8    39.7
+avg chars                  87.4    94.4
+avg tokens                 13.7    14.9
+vocab size (raw)        17068.0  5034.0
+% with hashtag             39.6    72.2
+% with @mention            39.9    37.6
+% with URL                 22.4    25.1
+% with emoji               10.6    11.2
+[   0.2s] 2. Preprocessing and feature extraction
+                                                                                                                             text                                                                                                                             clean
+0                            Sweet United Nations video. Just in time for Christmas. #imagine #NoReligion  http://t.co/fej2v3OUBR                                                 sweet united nations video . just in time for christmas . imagine no religion url
+1  @mrdahl87 We are rumored to have talked to Erv's agent... and the Angels asked about Ed Escobar... that's hardly nothing    ;)          user we are rumored to have talked to erv's agent ... and the angels asked about ed escobar ... that's hardly nothing ;)
+2                                                                         Hey there! Nice to see you Minnesota/ND Winter Weather                                                                            hey there ! nice to see you minnesota nd winter weather
+3                                                                                             3 episodes left I'm dying over here                                                                                               3 episodes left i'm dying over here
+4  "I can't breathe!" was chosen as the most notable quote of the year in an annual list released by a Yale University librarian   " i can't breathe ! " was chosen as the most notable quote of the year in an annual list released by a yale university librarian
+[   4.9s] 3. Training / tuning (5-fold stratified CV on the training set, scoring = F1 of positive class)
+[   7.9s]    B1: TF-IDF(word) + Naive Bayes: CV-F1=0.6369  best={'clf__alpha': 1.0}
+[  11.7s]    B2: TF-IDF(word) + LogReg: CV-F1=0.6465  best={'clf__C': 3}
+[  15.5s]    I1: Context-only + GradBoost: CV-F1=0.6688  best={'clf__max_depth': 3, 'clf__max_iter': 200}
+[ 119.6s]    I2: TF-IDF(word+char)+Context + LogReg: CV-F1=0.6832  best={'clf__C': 1, 'feat__transformer_weights': {'ctx': 0.6}}
+[ 220.0s]    I3: TF-IDF(word+char)+Context + LinearSVM: CV-F1=0.6806  best={'clf__C': 0.03, 'feat__transformer_weights': {'ctx': 0.15}}
+                                           Accuracy  Precision  Recall      F1  Macro-F1  ROC-AUC       F1 95% CI  CV F1 (train, 5-fold)
+Model                                                                                                                                   
+B1: TF-IDF(word) + Naive Bayes               0.6735     0.5733  0.6913  0.6268    0.6683   0.7390  [0.583, 0.669]                 0.6369
+B2: TF-IDF(word) + LogReg                    0.6645     0.5649  0.6720  0.6138    0.6586   0.7453  [0.568, 0.652]                 0.6465
+I1: Context-only + GradBoost                 0.6837     0.5924  0.6495  0.6196    0.6744   0.7492  [0.575, 0.664]                 0.6688
+I2: TF-IDF(word+char)+Context + LogReg       0.6901     0.5971  0.6720  0.6324    0.6822   0.7773  [0.588, 0.675]                 0.6832
+I3: TF-IDF(word+char)+Context + LinearSVM    0.6837     0.5877  0.6785  0.6299    0.6768   0.7615  [0.586, 0.672]                 0.6806
+I4: Late fusion (Text-LR + Context-GB)       0.7054     0.6099  0.7138  0.6578    0.6995   0.7896  [0.616, 0.697]                 0.6842
+[ 236.7s]    Best model on test (F1): I4: Late fusion (Text-LR + Context-GB)
+[ 237.1s] 4. McNemar significance tests (vs. baseline B2)
+                                           B2 right/model wrong  ...   p-value
+Model vs B2                                                      ...          
+B1: TF-IDF(word) + Naive Bayes                               42  ...  0.529602
+I1: Context-only + GradBoost                                110  ...  0.361135
+I2: TF-IDF(word+char)+Context + LogReg                       55  ...  0.095253
+I3: TF-IDF(word+char)+Context + LinearSVM                    74  ...  0.272784
+I4: Late fusion (Text-LR + Context-GB)                       46  ...  0.005161
+
+[5 rows x 3 columns]
+[ 237.1s] 5. Ablation study (best LR hyper-parameters, 5-fold CV on train + test)
+                              CV F1 mean  CV F1 std  Test Acc  Test P  Test R  Test F1
+Configuration                                                                         
+word TF-IDF only (= B2)           0.6431     0.0156    0.6633  0.5644  0.6624   0.6095
+word + char TF-IDF                0.6610     0.0089    0.6837  0.5863  0.6881   0.6331
++ sentiment/incongruity only      0.6581     0.0118    0.6773  0.5801  0.6752   0.6241
++ pragmatic/stylistic only        0.6586     0.0106    0.6913  0.6000  0.6656   0.6311
++ structural only                 0.6805     0.0152    0.6977  0.6005  0.7106   0.6510
+FULL (all context features)       0.6832     0.0159    0.6901  0.5971  0.6720   0.6324
+FULL - sentiment/incongruity      0.6817     0.0172    0.7015  0.6066  0.7042   0.6518
+FULL - pragmatic/stylistic        0.6742     0.0125    0.6849  0.5870  0.6945   0.6362
+FULL - structural                 0.6604     0.0122    0.6888  0.5960  0.6688   0.6303
+context features only (LR)        0.6648     0.0157    0.6620  0.5650  0.6431   0.6015
+B2 + stop-word removal            0.6555     0.0108    0.6786  0.5813  0.6785   0.6261
+[ 297.5s] 6. Most informative features
+Top ironic words: ['fun', 'great', 'love', 'i love', '" user', ', the', 'an', 'a great', 'nice', 'just love', 'emoji_unamused_face', 'now i', '. user', 'thanks', 'so']
+Top non-ironic words: [', but', 'playing', 'but', 'would be', 'make', 'tonight', 'x', 'apple', '2015', 'not', 'ah', 'literally', 'im', 'long', 'seen']
+                     feature      coef
+29985             n_hashtags -0.827662
+29987             n_mentions -0.522492
+29988                has_url -0.489413
+29976             caps_ratio -0.348239
+29983               n_tokens -0.291869
+29989                n_emoji -0.246159
+29959               sent_all -0.229198
+29963              seg_flips -0.194582
+29990           emoji_at_end -0.150520
+29958             sent_emoji -0.079604
+29973        has_mixed_punct -0.066437
+29981             n_laughter -0.059997
+29972             n_question -0.050757
+29964            n_pos_words -0.041389
+29966      pos_and_neg_words  0.020114
+29970   pos_text_neg_context  0.049067
+29967  contrast_text_hashtag  0.062993
+29974             n_ellipsis  0.075930
+29977        n_allcaps_words  0.093440
+29957           sent_hashtag  0.102118
+29965            n_neg_words  0.106106
+29979        n_interjections  0.120635
+29971              n_exclaim  0.122562
+29956              sent_text  0.163501
+29978            n_elongated  0.166075
+29968       gap_text_hashtag  0.172451
+29960                seg_max  0.174174
+29969    contrast_text_emoji  0.214552
+29980         n_intensifiers  0.220982
+29975               n_quotes  0.240574
+29984              log_chars  0.252763
+29982    starts_interjection  0.253977
+29962        seg_incongruity  0.266107
+29986      ends_with_hashtag  0.400248
+29961                seg_min  0.450728
+[ 298.1s] 7. Error analysis for: I4: Late fusion (Text-LR + Context-GB)
+                                 n  % ironic (gold)  Error rate %  FN rate % (of ironic)  FP rate % (of non-ironic)
+Subset                                                                                                             
+short (<=8 tokens)             144             39.6          31.2                   15.8                       41.4
+long (>=20 tokens)             155             45.2          28.4                   24.3                       31.8
+has hashtag                    362             38.4          26.0                   23.7                       27.4
+no hashtag                     422             40.8          32.5                   32.6                       32.4
+has emoji/emoticon             105             32.4          21.0                   14.7                       23.9
+has URL                        197             19.8          19.3                   79.5                        4.4
+has @mention                   295             28.5          28.8                   54.8                       18.5
+positive text sentiment        326             43.3          27.6                   14.2                       37.8
+negative text sentiment        161             34.2          35.4                   43.6                       31.1
+neutral text sentiment         297             38.7          28.3                   39.1                       21.4
+sentiment incongruity present   38             47.4          28.9                   22.2                       35.0
+text-vs-hashtag contrast        45             55.6          35.6                   12.0                       65.0
+has '!'                        119             39.5          31.9                   21.3                       38.9
+has interjection                80             48.8          27.5                   15.4                       39.0
+Overall error rate: 29.5%   FN=89  FP=142
+
+--- most confident FN (missed irony) ---
+  p=0.21 | @ambika1900 @sankrant @CChristineFair @JTMondal @Al_Muwa7id Christian Europe translated Islamic manuscripts #Irony http://t.co/0hXEQig7hM
+  p=0.23 | clashupdate #not http://t.co/1bFOsIwnI5
+  p=0.24 | @PoliticalAnt @emthedivine @mark3labs @elyse4design @chixenman @Morning_Joe yet in Ferguson, MO the mayor and Gov are Dems. #irony
+  p=0.24 | Blue skies, warm air, and the royal accommodation! #WhatMoreDoesOneNeed #Education? #Not... http://t.co/mEtHUIaAtR http://t.co/CsW0rfhGZZ
+  p=0.24 | Produce Mobile Apps #not http://t.co/3OV57ZhqcH http://t.co/wX1DbI8W9M
+  p=0.24 | Wash hands with water? MOH is rubbing this on everyone's face? #irony http://t.co/sPgfZZIqLO
+  p=0.25 | @RozieBreen @CllrKWakefield @tomriordan @GaryVerity @BBCLeedsif we get it right for business the trickle down fairy will do the rest #NOT
+  p=0.27 | How can u miss something u never had?||#randomthoughts #miss #irony |http://t.co/G5jLy9IKqn
+
+--- most confident FP (false alarm) ---
+  p=0.79 | Yeah, you're a grown up & at times feel very nostalgic towards your Bachpan. Iife's handiwork!!
+  p=0.77 | I'm officially making today "Single men get a smoothie" day because that's who my customers have been all day.
+  p=0.77 | Putting good things in my mind for lunch today instead of just internet junk. Oh, and tweeting. Tweeting good for building tribe.
+  p=0.76 | Dan said he's going to have a sign for me at the airport when I fly in lol #SoCute #3MoreWeeks
+  p=0.75 | Corny jokes are my absolute favorite
+  p=0.74 | That awkward moment when you plane your whole day around your Golf Class, and it gets cancelled! #stupidrain
+  p=0.72 | How were your #holidays? We'd love to hear all about them!
+  p=0.72 | The ones that caught me by surprise were the ones I didn't expect #duh #redundantredundant
+[ 298.5s] DONE. Best model saved to models/best_model.joblib
